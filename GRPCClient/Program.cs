@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Grpc.Net.Client;
+using GrpcServer;
 using GRPCServer;
 
 namespace GRPCClient
@@ -17,12 +18,17 @@ namespace GRPCClient
             httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
             var httpClient = new HttpClient(httpClientHandler);
 
-            var input = new HelloRequest { Name = "World!" };
-            var channel = GrpcChannel.ForAddress("https://localhost:5001", new GrpcChannelOptions { HttpClient = httpClient });
-            var client = new Greeter.GreeterClient(channel);
-            var reply = await client.SayHelloAsync(input);
+            var greeterInput = new HelloRequest { Name = "World!" };
+            var greeterChannel = GrpcChannel.ForAddress("https://localhost:5001", new GrpcChannelOptions { HttpClient = httpClient });
+            var greeterclient = new Greeter.GreeterClient(greeterChannel);
+            var greeterReply = await greeterclient.SayHelloAsync(greeterInput);
 
-            Console.WriteLine(reply.Message);
+            var customerInput = new CustomerLookupModel { UserId = 1 };
+            var channel = GrpcChannel.ForAddress("https://localhost:5001");
+            var customerClient = new Customer.CustomerClient(channel);
+            var customerReply = await customerClient.GetCustomerInfoAsync(customerInput);
+
+            Console.WriteLine(customerReply.FirstName);
             Console.ReadLine();
         }
     }
